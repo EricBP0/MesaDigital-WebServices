@@ -1,6 +1,11 @@
 package com.example.mesadigitalwebservices.entity.permissoes;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 
 @Entity(name = "tb_liberacao_cargo")
 public class LiberacaoCargo {
@@ -15,28 +20,4 @@ public class LiberacaoCargo {
     @JoinColumn(nullable = false, name = "id_liberacao")
     @ManyToOne
     private Liberacao liberacao;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Cargo getCargo() {
-        return cargo;
-    }
-
-    public void setCargo(Cargo cargo) {
-        this.cargo = cargo;
-    }
-
-    public Liberacao getLiberacao() {
-        return liberacao;
-    }
-
-    public void setLiberacao(Liberacao liberacao) {
-        this.liberacao = liberacao;
-    }
 }

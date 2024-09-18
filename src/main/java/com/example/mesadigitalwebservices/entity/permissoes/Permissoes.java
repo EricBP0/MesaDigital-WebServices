@@ -1,7 +1,12 @@
 package com.example.mesadigitalwebservices.entity.permissoes;
 
-import com.example.mesadigitalwebservices.entity.User;
+import com.example.mesadigitalwebservices.entity.user.User;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 
 @Entity(name = "tb_permissoes")
 public class Permissoes {
@@ -17,12 +22,4 @@ public class Permissoes {
     @JoinColumn(name = "id_user")
     @ManyToOne
     private User user;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
 }

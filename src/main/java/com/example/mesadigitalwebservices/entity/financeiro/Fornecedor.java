@@ -1,4 +1,4 @@
-package com.example.mesadigitalwebservices.entity.permissoes;
+package com.example.mesadigitalwebservices.entity.financeiro;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,13 +10,19 @@ import lombok.Setter;
 @Getter
 @Setter
 
-@Entity(name = "tb_liberacao")
-public class Liberacao {
+@Entity(name = "tb_fornecedores")
+public class Fornecedor {
+
     @Id
     @GeneratedValue
-    @Column
     private Long id;
 
+    @Column(nullable = false)
+    private String nome;
+
     @Column
-    private String nomeLiberacao;
+    private String contato;
+
+    @Column
+    private String descricao;
 }

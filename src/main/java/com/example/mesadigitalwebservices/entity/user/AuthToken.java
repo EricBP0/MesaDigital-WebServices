@@ -1,8 +1,13 @@
-package com.example.mesadigitalwebservices.entity;
+package com.example.mesadigitalwebservices.entity.user;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Date;
+
+@Getter
+@Setter
 
 @Entity(name = "tb_auth_token")
 public class AuthToken {
@@ -22,12 +27,4 @@ public class AuthToken {
     @JoinColumn(nullable = false, name = "username")
     @OneToOne(fetch = FetchType.EAGER)
     private User userId;
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
 }
