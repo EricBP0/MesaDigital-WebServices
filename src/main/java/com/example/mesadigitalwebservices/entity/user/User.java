@@ -23,8 +23,11 @@ public class User {
     @Column
     private String nome;
 
-    @Column
+    @Column(nullable = false, unique = true)
     private String email;
+
+    @Column(nullable = false)
+    private String senha;
 
     @Column
     private String funcao;

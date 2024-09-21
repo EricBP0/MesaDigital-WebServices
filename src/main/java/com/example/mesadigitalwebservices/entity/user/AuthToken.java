@@ -16,9 +16,6 @@ public class AuthToken {
     private Long id;
 
     @Column(nullable = false)
-    private String senha;
-
-    @Column(nullable = false)
     private String token;
 
     @Column(nullable = false)
