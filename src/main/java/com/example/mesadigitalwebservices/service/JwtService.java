@@ -6,13 +6,15 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.spec.SecretKeySpec;
+import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
 
-    private String SECRET_KEY = "chaveSegura123!";
+    private String SECRET_KEY = "7b900ef894a1a0e82f4113d0f52d8f54751616b7afc53a646503ef0c2c1b861a";
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -48,7 +50,8 @@ public class JwtService {
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 horas de validade
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .signWith(new SecretKeySpec(SECRET_KEY.getBytes(), "HmacSHA256"))
                 .compact();
     }
 }
+

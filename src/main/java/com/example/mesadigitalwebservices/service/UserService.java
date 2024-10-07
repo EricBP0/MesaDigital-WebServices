@@ -2,6 +2,7 @@ package com.example.mesadigitalwebservices.service;
 
 import com.example.mesadigitalwebservices.dto.UserRegistrationRequest;
 import com.example.mesadigitalwebservices.entity.user.User;
+import io.jsonwebtoken.security.Keys;
 
 import com.example.mesadigitalwebservices.repository.user.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,7 +26,15 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return loadUserByEmail(email);
+        Optional<User> userOptional = userRepository.findByEmail(email);
+        User user = userOptional.orElseThrow(() ->
+                new UsernameNotFoundException("Usuário não encontrado com o email: " + email));
+
+        return org.springframework.security.core.userdetails.User.builder()
+                .username(user.getEmail())
+                .password(user.getSenha())
+                .roles("USER")
+                .build();
     }
 
     public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
@@ -48,6 +57,7 @@ public class UserService implements UserDetailsService {
         User user = new User();
         user.setNome(request.getName());
         user.setEmail(request.getEmail());
+        user.setSenha("");
         user.setSenha(passwordEncoder.encode(request.getPassword()));
 
         userRepository.save(user);
