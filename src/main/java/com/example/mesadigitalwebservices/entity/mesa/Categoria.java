@@ -24,4 +24,7 @@ public class Categoria {
     @Column
     private String descricao;
 
+    @Column
+    private CategoriaTipo tipo;
+
 }
