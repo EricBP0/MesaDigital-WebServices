@@ -1,20 +1,30 @@
 package com.example.mesadigitalwebservices.service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtParserBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.Key;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.function.Function;
 
 @Service
 public class JwtService {
 
-    private String SECRET_KEY = "7b900ef894a1a0e82f4113d0f52d8f54751616b7afc53a646503ef0c2c1b861a";
+    @Value("${jwt.secret}")
+    private String secret;
+
+    private SecretKey getSecretKey() {
+        return new SecretKeySpec(secret.getBytes(), SignatureAlgorithm.HS512.getJcaName());
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -26,8 +36,9 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(SECRET_KEY)
+        JwtParserBuilder builder = Jwts.parserBuilder().setSigningKey(getSecretKey());
+        return builder
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -38,7 +49,7 @@ public class JwtService {
     }
 
     private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+        return extractExpiration(token).before(Date.from(Instant.now()));
     }
 
     private Date extractExpiration(String token) {
@@ -46,12 +57,12 @@ public class JwtService {
     }
 
     public String generateToken(UserDetails userDetails) {
+        Instant now = Instant.now();
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 horas de validade
-                .signWith(new SecretKeySpec(SECRET_KEY.getBytes(), "HmacSHA256"))
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(now.plus(10, ChronoUnit.HOURS)))
+                .signWith(getSecretKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 }
-

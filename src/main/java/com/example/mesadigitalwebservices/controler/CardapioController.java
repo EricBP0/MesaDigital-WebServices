@@ -7,16 +7,14 @@ import com.example.mesadigitalwebservices.entity.mesa.Produto;
 import com.example.mesadigitalwebservices.repository.mesa.CategoriaRepository;
 import com.example.mesadigitalwebservices.repository.mesa.ProdutoRepository;
 import com.example.mesadigitalwebservices.util.CoreUtils;
-import org.aspectj.weaver.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
-@RestController("/cardapio")
+@RestController()
+@RequestMapping("/cardapio")
 public class CardapioController {
 
     @Autowired
@@ -123,9 +121,11 @@ public class CardapioController {
     @GetMapping("/get")
     public ResponseEntity<?> getCardapio() {
         ResponseCardapioDto response = new ResponseCardapioDto();
-        response.produtoList.addAll(produtoRepository.findAllByCategoriaTipo(CategoriaTipo.COMIDA));
-        if (response.produtoList.isEmpty()) {
+        List<Produto> produtos = produtoRepository.findAllByCategoriaTipo(CategoriaTipo.COMIDA.toString());
+        if (produtos.isEmpty()) {
             return ResponseEntity.noContent().build();
+        }else{
+            response.produtoList = produtos;
         }
         return ResponseEntity.ok(response);
     }
