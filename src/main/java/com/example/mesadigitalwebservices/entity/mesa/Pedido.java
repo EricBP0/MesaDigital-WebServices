@@ -26,4 +26,6 @@ public class Pedido {
     @Column
     private String status;
 
+    @Column String descricao;
+
 }

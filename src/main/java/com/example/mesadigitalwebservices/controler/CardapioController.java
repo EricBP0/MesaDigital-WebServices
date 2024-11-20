@@ -1,9 +1,13 @@
 package com.example.mesadigitalwebservices.controler;
 
+import com.example.mesadigitalwebservices.dto.Comanda.ProdutoDto;
+import com.example.mesadigitalwebservices.dto.cardapio.CategoriaDto;
+import com.example.mesadigitalwebservices.dto.cardapio.ProdutoCreateDto;
 import com.example.mesadigitalwebservices.dto.cardapio.ResponseCardapioDto;
 import com.example.mesadigitalwebservices.entity.mesa.Categoria;
 import com.example.mesadigitalwebservices.entity.mesa.CategoriaTipo;
 import com.example.mesadigitalwebservices.entity.mesa.Produto;
+import com.example.mesadigitalwebservices.repository.financeiro.EstoqueRepository;
 import com.example.mesadigitalwebservices.repository.mesa.CategoriaRepository;
 import com.example.mesadigitalwebservices.repository.mesa.ProdutoRepository;
 import com.example.mesadigitalwebservices.util.CoreUtils;
@@ -11,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController()
@@ -21,27 +26,27 @@ public class CardapioController {
     private CategoriaRepository categoriaRepository;
     @Autowired
     private ProdutoRepository produtoRepository;
+    @Autowired
+    private EstoqueRepository estoqueRepository;
 
     @PostMapping("/categoria/create")
-    public ResponseEntity<?> createCategory(@RequestBody Categoria categoria) {
-        if(CoreUtils.validateCategoria(categoria)){
-            if(categoriaRepository.findByNome(categoria.getNome()).isPresent()){
-                categoriaRepository.save(categoria);
-            }else{
-                return ResponseEntity.unprocessableEntity().body("Categoria já criada");
-            }
-            return ResponseEntity.ok("Categoria cadastrada com sucesso!");
+    public ResponseEntity<?> categoriaCreate(@RequestBody CategoriaDto categoriaDto) {
+        if(!categoriaRepository.existsByNome(categoriaDto.nome)){
+            Categoria categoria = new Categoria();
+            categoria.setNome(categoriaDto.nome);
+            categoria.setDescricao(categoriaDto.descricao);
+            categoria.setTipo(categoriaDto.tipo);
+            categoriaRepository.save(categoria);
+
+            return ResponseEntity.ok().build();
         }
-        return ResponseEntity.badRequest().body("Categoria com nome ou descrição vazias!");
+        return ResponseEntity.badRequest().build();
     }
 
-    @GetMapping("/categoria/todas")
-    public ResponseEntity<List<Categoria>> findAll() {
-        List<Categoria> categorias = categoriaRepository.findAll();
-        if(categorias.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(categorias);
+    @GetMapping("/categoria/get-all")
+    public ResponseEntity<?> getAllCategoria() {
+        List<Categoria> categoriaList = categoriaRepository.findAll();
+        return ResponseEntity.ok().body(categoriaList);
     }
 
     @PutMapping("/categoria/edit")
@@ -71,13 +76,21 @@ public class CardapioController {
     }
 
     @PostMapping("/produto/create")
-    public ResponseEntity<?> createProduct(@RequestBody Produto produto) {
-        if(CoreUtils.validateProduto(produto)){
-            produtoRepository.save(produto);
-            return ResponseEntity.ok("Produto criado com sucesso!");
-        }else{
-            return ResponseEntity.badRequest().body("Produto vazio!");
+    public ResponseEntity<?> createProduct(@RequestBody ProdutoCreateDto produto) {
+        if(!produtoRepository.existsByNome(produto.nome)){
+            Produto p = new Produto();
+            p.setNome(produto.nome);
+            p.setDescricao(produto.descricao);
+            p.setCategoria(categoriaRepository.findById(produto.categoriaId).get());
+            p.setEstoque(estoqueRepository.findById(produto.estoqueId).get());
+            p.setValor(produto.valor);
+            p.setQuantidade(produto.quantidade);
+            p.setDataCadastro(new Date());
+
+            produtoRepository.save(p);
+            return ResponseEntity.ok().build();
         }
+        return ResponseEntity.badRequest().body("Produto ja existe!");
     }
 
     @GetMapping("/produto/todos")

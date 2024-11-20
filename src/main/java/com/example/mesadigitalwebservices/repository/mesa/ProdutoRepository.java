@@ -10,5 +10,7 @@ import java.util.List;
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
 
+    boolean existsByNome(String nome);
+
     List<Produto> findAllByCategoriaTipo(String tipo);
 }

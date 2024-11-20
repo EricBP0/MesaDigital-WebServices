@@ -1,10 +1,11 @@
 package com.example.mesadigitalwebservices.dto.Comanda;
 
-import com.example.mesadigitalwebservices.entity.mesa.Comanda;
-import com.example.mesadigitalwebservices.entity.mesa.Pedido;
+import java.util.List;
 
 public class RequestNewPedidoDto {
-    public Pedido pedido;
-
-    public Comanda comanda;
+    public Long categoriaId;
+    public Long comandaId;
+    public int numMesa;
+    public String observacao;
+    public List<ProdutoDto> produtos;
 }
