@@ -3,6 +3,8 @@ package com.example.mesadigitalwebservices.controler;
 import com.example.mesadigitalwebservices.dto.AuthenticationRequest;
 import com.example.mesadigitalwebservices.dto.AuthenticationResponse;
 import com.example.mesadigitalwebservices.dto.UserRegistrationRequest;
+import com.example.mesadigitalwebservices.entity.user.User;
+import com.example.mesadigitalwebservices.repository.user.UserRepository;
 import com.example.mesadigitalwebservices.service.JwtService;
 import com.example.mesadigitalwebservices.service.UserService;
 import jakarta.validation.Valid;
@@ -16,6 +18,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -23,11 +27,13 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
     private final JwtService jwtService;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService) {
+    public AuthController(AuthenticationManager authenticationManager, UserService userService, JwtService jwtService, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.userService = userService;
         this.jwtService = jwtService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/login")
@@ -46,6 +52,12 @@ public class AuthController {
     public ResponseEntity<String> registerUser(@Valid @RequestBody UserRegistrationRequest request) {
         userService.registerUser(request);
         return new ResponseEntity<>("Usuário registrado com sucesso", HttpStatus.CREATED);
+    }
+
+    @GetMapping("/list/users")
+    public ResponseEntity<List<User>> getAllUsers() {
+        List<User> userList = userRepository.findAll();
+        return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 }
 

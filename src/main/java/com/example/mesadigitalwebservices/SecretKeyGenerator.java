@@ -12,7 +12,7 @@ public class SecretKeyGenerator {
     }
 
     public static void main(String[] args) {
-        String secretKey = generateSecretKey(64); // 256 bits
+        String secretKey = generateSecretKey(64); // 512 bits
         System.out.println("Generated Secret Key: " + secretKey);
     }
 }

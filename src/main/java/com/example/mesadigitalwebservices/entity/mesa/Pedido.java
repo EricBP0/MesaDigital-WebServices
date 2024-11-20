@@ -23,4 +23,7 @@ public class Pedido {
     @Column
     private Date dataCriacao;
 
+    @Column
+    private String status;
+
 }

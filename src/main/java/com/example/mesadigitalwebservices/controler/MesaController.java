@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @RestController()
 @RequestMapping("/mesa")
@@ -48,6 +50,19 @@ public class MesaController {
         if(CoreUtils.validadeComanda(comanda)){
             comandaRepository.delete(comanda);
             return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
+    }
+    @GetMapping("/comanda/get-all")
+    public ResponseEntity<?> getAllComanda() {
+        List<Comanda> comandaList = comandaRepository.findAll();
+        return ResponseEntity.ok().body(comandaList);
+    }
+    @GetMapping("/comanda/get")
+    public ResponseEntity<?> getComanda(@RequestParam Long id) {
+        Optional<Comanda> comanda = comandaRepository.findById(id);
+        if(comanda.isPresent()){
+            return ResponseEntity.ok().body(comanda.get());
         }
         return ResponseEntity.badRequest().build();
     }

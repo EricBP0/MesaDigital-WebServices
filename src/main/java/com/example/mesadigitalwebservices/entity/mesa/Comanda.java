@@ -34,5 +34,8 @@ public class Comanda {
     @Column
     private BigInteger valor;
 
+    @Column
+    private String status;
+
 
 }
