@@ -1,16 +1,18 @@
 package com.example.mesadigitalwebservices.controler;
 
 import com.example.mesadigitalwebservices.dto.Comanda.*;
+import com.example.mesadigitalwebservices.dto.ProdutoIngredienteDto;
 import com.example.mesadigitalwebservices.entity.financeiro.Estoque;
 import com.example.mesadigitalwebservices.entity.mesa.*;
 import com.example.mesadigitalwebservices.entity.user.User;
 import com.example.mesadigitalwebservices.repository.financeiro.EstoqueRepository;
 import com.example.mesadigitalwebservices.repository.mesa.*;
 import com.example.mesadigitalwebservices.repository.user.UserRepository;
+import com.example.mesadigitalwebservices.service.ProdutoIngredienteService;
 import com.example.mesadigitalwebservices.util.CoreUtils;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -36,6 +38,8 @@ public class MesaController {
     private CategoriaRepository categoriaRepository;
     @Autowired
     private EstoqueRepository estoqueRepository;
+    @Autowired
+    private ProdutoIngredienteService produtoIngredienteService;
 
     @PostMapping("/comanda/create")
     public ResponseEntity<?> createComanda(@RequestBody ComandaDto comanda) {
@@ -89,6 +93,7 @@ public class MesaController {
     }
 
     @PostMapping("/comanda/pedido/create")
+    @Transactional(rollbackOn = Exception.class)
     public ResponseEntity<?> createNewPedido(@RequestBody RequestNewPedidoDto novoPedido) {
         if(novoPedido.categoriaId != null){
             Optional<Categoria> categoria = categoriaRepository.findById(novoPedido.categoriaId);
@@ -110,6 +115,11 @@ public class MesaController {
                             pedidoProduto.setPedido(pedido);
                             pedidoProduto.setProduto(produto.get());
                             pedidoProdutoRepository.save(pedidoProduto);
+                            try{
+                                produtoIngredienteService.removeProdutoIngrediente(new ProdutoIngredienteDto(null, produto.get().getId(), null));
+                            }catch (Exception e){
+                                System.out.println(e.getMessage());
+                            }
                         }
                     }else{
                         return ResponseEntity.badRequest().build();

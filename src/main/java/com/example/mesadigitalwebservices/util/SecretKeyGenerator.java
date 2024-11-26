@@ -1,4 +1,4 @@
-package com.example.mesadigitalwebservices;
+package com.example.mesadigitalwebservices.util;
 
 import java.security.SecureRandom;
 import java.util.Base64;

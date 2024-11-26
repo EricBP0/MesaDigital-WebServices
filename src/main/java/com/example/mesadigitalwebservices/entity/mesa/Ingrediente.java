@@ -8,19 +8,23 @@ import lombok.Setter;
 @Setter
 
 @Entity
-@Table(name = "tb_produto_ingrediente")
-public class ProdutoIngrediente {
+@Table(name = "tb_ingrediente")
+public class Ingrediente {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @OneToOne
-    private Produto produto;
+    @Column
+    private String nome;
+
+    @Column
+    private String descricao;
 
     @Column
     private Long quantidade;
 
-    @OneToOne
-    private Ingrediente ingrediente;
+    @Column
+    private String unidade;
+
 }
