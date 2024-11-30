@@ -1,7 +1,5 @@
 package com.example.mesadigitalwebservices.dto.cardapio;
 
-import com.example.mesadigitalwebservices.dto.estoque.IngredienteDto;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -13,5 +11,5 @@ public class ProdutoCreateDto {
     public String descricao;
     public Long quantidade;
     public BigDecimal valor;
-    public List<IngredienteDto> ingredientes;
+    public List<Long> ingredientes;
 }

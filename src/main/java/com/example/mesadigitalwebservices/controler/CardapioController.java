@@ -1,14 +1,15 @@
 package com.example.mesadigitalwebservices.controler;
 
-import com.example.mesadigitalwebservices.dto.Comanda.ProdutoDto;
 import com.example.mesadigitalwebservices.dto.cardapio.CategoriaDto;
 import com.example.mesadigitalwebservices.dto.cardapio.ProdutoCreateDto;
 import com.example.mesadigitalwebservices.dto.cardapio.ResponseCardapioDto;
 import com.example.mesadigitalwebservices.entity.mesa.Categoria;
 import com.example.mesadigitalwebservices.entity.mesa.CategoriaTipo;
 import com.example.mesadigitalwebservices.entity.mesa.Produto;
+import com.example.mesadigitalwebservices.entity.mesa.ProdutoIngrediente;
 import com.example.mesadigitalwebservices.repository.financeiro.EstoqueRepository;
 import com.example.mesadigitalwebservices.repository.mesa.CategoriaRepository;
+import com.example.mesadigitalwebservices.repository.mesa.ProdutoIngredienteRepository;
 import com.example.mesadigitalwebservices.repository.mesa.ProdutoRepository;
 import com.example.mesadigitalwebservices.util.CoreUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RestController()
 @RequestMapping("/cardapio")
@@ -28,6 +30,8 @@ public class CardapioController {
     private ProdutoRepository produtoRepository;
     @Autowired
     private EstoqueRepository estoqueRepository;
+    @Autowired
+    private ProdutoIngredienteRepository produtoIngredienteRepository;
 
     @PostMapping("/categoria/create")
     public ResponseEntity<?> categoriaCreate(@RequestBody CategoriaDto categoriaDto) {
@@ -51,28 +55,29 @@ public class CardapioController {
 
     @PutMapping("/categoria/edit")
     public ResponseEntity<?> updateCategory(@RequestBody Categoria categoria) {
-        if(CoreUtils.validateCategoria(categoria)){
-            if(categoriaRepository.findByNome(categoria.getNome()).isPresent()){
-                categoriaRepository.save(categoria);
-                return ResponseEntity.ok("Categoria atualizada com sucesso!");
-            }else{
-                return ResponseEntity.notFound().build();
-            }
+        if(categoriaRepository.findByNome(categoria.getNome()).isPresent()){
+            categoriaRepository.save(categoria);
+            return ResponseEntity.ok("Categoria atualizada com sucesso!");
+        }else{
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.badRequest().body("Categoria com nome ou descrição vazias!");
     }
 
     @PostMapping("/categoria/delete")
-    public ResponseEntity<?> deleteCategory(@RequestBody Categoria categoria) {
-        if(CoreUtils.validateCategoria(categoria)){
-            if(categoriaRepository.findByNome(categoria.getNome()).isPresent()){
-                categoriaRepository.delete(categoria);
-                return ResponseEntity.ok("Categoria deletada com sucesso!");
-            }else{
-                return ResponseEntity.notFound().build();
+    public ResponseEntity<?> deleteCategory(@RequestBody Long categoriaId) {
+        Optional<Categoria> categoria = categoriaRepository.findById(categoriaId);
+        if(categoria.isPresent()){
+            List<Produto> produtos = produtoRepository.findAllByCategoria(categoria.get());
+            for(Produto produto : produtos){
+                Optional<List<ProdutoIngrediente>> produtoIngredientes = produtoIngredienteRepository.findAllByProdutoId(produto.getId());
+                produtoIngredientes.ifPresent(ingredientes -> produtoIngredienteRepository.deleteAll(ingredientes));
             }
+            produtoRepository.deleteAll(produtos);
+            categoriaRepository.delete(categoria.get());
+            return ResponseEntity.ok("Categoria deletada com sucesso!");
+        }else{
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.badRequest().body("Categoria com nome ou descrição vazias!");
     }
 
     @PostMapping("/produto/create")

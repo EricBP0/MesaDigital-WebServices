@@ -94,7 +94,7 @@ public class MesaController {
 
     @PostMapping("/comanda/pedido/create")
     @Transactional(rollbackOn = Exception.class)
-    public ResponseEntity<?> createNewPedido(@RequestBody RequestNewPedidoDto novoPedido) {
+    public ResponseEntity<?> createNewPedido(@RequestBody RequestNewPedidoDto novoPedido) throws Exception {
         if(novoPedido.categoriaId != null){
             Optional<Categoria> categoria = categoriaRepository.findById(novoPedido.categoriaId);
             Optional<Comanda> comanda = comandaRepository.findById(novoPedido.comandaId);
@@ -115,12 +115,9 @@ public class MesaController {
                             pedidoProduto.setPedido(pedido);
                             pedidoProduto.setProduto(produto.get());
                             pedidoProdutoRepository.save(pedidoProduto);
-                            try{
-                                produtoIngredienteService.removeProdutoIngrediente(new ProdutoIngredienteDto(null, produto.get().getId(), null));
-                            }catch (Exception e){
-                                System.out.println(e.getMessage());
-                            }
+                            produtoIngredienteService.removeProdutoIngrediente(new ProdutoIngredienteDto(null, produto.get().getId(), null));
                         }
+                        return ResponseEntity.ok().build();
                     }else{
                         return ResponseEntity.badRequest().build();
                     }

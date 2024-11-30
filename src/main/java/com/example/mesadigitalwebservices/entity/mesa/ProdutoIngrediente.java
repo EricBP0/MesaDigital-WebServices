@@ -6,7 +6,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 @Entity
 @Table(name = "tb_produto_ingrediente")
 public class ProdutoIngrediente {
@@ -15,12 +14,14 @@ public class ProdutoIngrediente {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "produto_id", nullable = false)
     private Produto produto;
 
-    @Column
-    private Long quantidade;
-
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "ingrediente_id", nullable = false)
     private Ingrediente ingrediente;
+
+    @Column(nullable = false)
+    private Long quantidade;
 }

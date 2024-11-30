@@ -1,5 +1,6 @@
 package com.example.mesadigitalwebservices.entity.mesa;
 
+import com.example.mesadigitalwebservices.entity.financeiro.Estoque;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,5 +27,9 @@ public class Ingrediente {
 
     @Column
     private String unidade;
+
+    @JoinColumn(name = "id_estoque")
+    @ManyToOne
+    private Estoque estoque;
 
 }

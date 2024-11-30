@@ -19,12 +19,6 @@ public class CoreUtils {
         return userRepository.existsById(comanda.getAtendente().getId());
     }
 
-    public static boolean validateCategoria(Categoria categoria) {
-        if(categoria.getNome().isEmpty()){
-            return false;
-        } else return !categoria.getDescricao().isEmpty();
-    }
-
     public static boolean validateProduto(Produto produto) {
         return !produto.getNome().isEmpty() && !produto.getDescricao().isEmpty() && produto.getValor().intValue() < 0;
     }

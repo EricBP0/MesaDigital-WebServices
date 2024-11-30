@@ -6,4 +6,5 @@ public class IngredienteDto {
     public String descricao;
     public Long quantidade;
     public String unidade;
+    public Long estoqueId;
 }

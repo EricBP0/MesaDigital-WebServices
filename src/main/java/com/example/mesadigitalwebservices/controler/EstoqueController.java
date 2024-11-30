@@ -13,6 +13,7 @@ import com.example.mesadigitalwebservices.repository.mesa.CategoriaRepository;
 import com.example.mesadigitalwebservices.repository.mesa.IngredienteRepository;
 import com.example.mesadigitalwebservices.repository.mesa.ProdutoIngredienteRepository;
 import com.example.mesadigitalwebservices.repository.mesa.ProdutoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -67,27 +68,27 @@ public class EstoqueController {
                     produtoEntity.setDescricao(produtoDto.descricao);
                     produtoEntity.setQuantidade(produtoDto.quantidade);
                     produtoEntity.setValor(produtoDto.valor);
-                    for(IngredienteDto ingredienteDto : produtoDto.ingredientes) {
-                        if(ingredienteRepository.existsById(ingredienteDto.id)) {
-                            Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteDto.id);
+                    produtoRepository.save(produtoEntity);
+                    List<Ingrediente> ingredientes = ingredienteRepository.findAllById(produtoDto.ingredientes);
+                    for(Ingrediente ingredienteDto : ingredientes) {
+                        if(ingredienteRepository.existsById(ingredienteDto.getId())) {
+                            Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteDto.getId());
                             if(ingrediente.isPresent()) {
                                 ProdutoIngrediente produtoIngredienteEntity = new ProdutoIngrediente();
                                 produtoIngredienteEntity.setProduto(produtoEntity);
                                 produtoIngredienteEntity.setIngrediente(ingrediente.get());
-                                produtoIngredienteEntity.setQuantidade(ingredienteDto.quantidade);
+                                produtoIngredienteEntity.setQuantidade(produtoDto.quantidade);
                                 produtoIngredienteRepository.save(produtoIngredienteEntity);
                             }
                         }
                     }
-
-                    produtoRepository.save(produtoEntity);
-                    return ResponseEntity.ok().build();
+                return ResponseEntity.ok().build();
             }
         }
         return ResponseEntity.badRequest().build();
     }
 
-    @PutMapping("/produto/delete")
+    @DeleteMapping("/produto/delete")
     public ResponseEntity<?> removeProduct(@RequestParam Long produtoId) {
         if(produtoRepository.existsById(produtoId)) {
             Optional<Produto> produto = produtoRepository.findById(produtoId);
@@ -98,6 +99,7 @@ public class EstoqueController {
         return null;
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @PutMapping("/produto/update")
     public ResponseEntity<?> updateProduct(@RequestBody ProdutoCreateDto produtoDto) {
         if(produtoRepository.existsByNome(produtoDto.nome)
@@ -114,28 +116,17 @@ public class EstoqueController {
                 produtoEntity.setDescricao(produtoDto.descricao);
                 produtoEntity.setQuantidade(produtoDto.quantidade);
                 produtoEntity.setValor(produtoDto.valor);
+                Produto newProduto = produtoRepository.save(produtoEntity);
 
-                //Validação/Execução muito propícia a virar uma proc no BD kkkkkk
-                for(IngredienteDto ingredienteDto : produtoDto.ingredientes) {
-                   Optional<List<ProdutoIngrediente>> produtoIngredienteList = produtoIngredienteRepository.findAllByProdutoId(produtoEntity.getId());
-                   for(ProdutoIngrediente produtoIngrediente : produtoIngredienteList.get()) {
-                       Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteDto.id);
-                       if(ingrediente.isPresent()) {
-                           if(!produtoIngrediente.getIngrediente().equals(ingrediente.get())) {
-                               produtoIngredienteRepository.delete(produtoIngrediente);
-                               ProdutoIngrediente produtoIngredienteEntity = new ProdutoIngrediente();
-                               produtoIngredienteEntity.setProduto(produtoEntity);
-                               produtoIngredienteEntity.setIngrediente(ingrediente.get());
-                               produtoIngredienteEntity.setQuantidade(ingredienteDto.quantidade);
-                               produtoIngredienteRepository.save(produtoIngredienteEntity);
-                           }
-                       }else{
-                            return ResponseEntity.badRequest().build();
-                       }
-                   }
+                List<Ingrediente> ingredientes = ingredienteRepository.findAllById(produtoDto.ingredientes);
+                produtoIngredienteRepository.deleteAllByProdutoId(newProduto.getId());
+                for(Ingrediente ingredienteDto : ingredientes) {
+                    ProdutoIngrediente produtoIngrediente = new ProdutoIngrediente();
+                    produtoIngrediente.setIngrediente(ingredienteDto);
+                    produtoIngrediente.setProduto(newProduto);
+                    produtoIngrediente.setQuantidade(1L);
+                    produtoIngredienteRepository.save(produtoIngrediente);
                 }
-
-                produtoRepository.save(produtoEntity);
                 return ResponseEntity.ok().build();
             }
         }
@@ -144,23 +135,27 @@ public class EstoqueController {
 
     @PostMapping("/ingrediente/create")
     public ResponseEntity<?> addIngredient(@RequestBody IngredienteDto ingredienteDto) {
-        if(!ingredienteRepository.existsByNome(ingredienteDto.nome)){
-            Ingrediente ingredienteEntity = new Ingrediente();
-            ingredienteEntity.setNome(ingredienteDto.nome);
-            ingredienteEntity.setDescricao(ingredienteDto.descricao);
-            ingredienteEntity.setQuantidade(ingredienteDto.quantidade);
-            ingredienteEntity.setUnidade(ingredienteDto.unidade);
+        if(!ingredienteRepository.existsByNome(ingredienteDto.nome) && estoqueRepository.existsById(ingredienteDto.estoqueId)) {
+            Optional<Estoque> estoque = estoqueRepository.findById(ingredienteDto.estoqueId);
+            if(estoque.isPresent()) {
+                Ingrediente ingredienteEntity = new Ingrediente();
+                ingredienteEntity.setNome(ingredienteDto.nome);
+                ingredienteEntity.setDescricao(ingredienteDto.descricao);
+                ingredienteEntity.setQuantidade(ingredienteDto.quantidade);
+                ingredienteEntity.setUnidade(ingredienteDto.unidade);
+                ingredienteEntity.setEstoque(estoque.get());
 
-            ingredienteRepository.save(ingredienteEntity);
-            return ResponseEntity.ok().build();
+                ingredienteRepository.save(ingredienteEntity);
+                return ResponseEntity.ok().build();
+            }
         }
         return ResponseEntity.badRequest().build();
     }
 
-    @PutMapping("/ingrediente/delete")
+    @DeleteMapping("/ingrediente/delete")
     public ResponseEntity<?> deleteIngredient(@RequestParam Long ingredienteId) {
-        if(ingredienteRepository.existsById(ingredienteId)) {
-            Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteId);
+        Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteId);
+        if(ingrediente.isPresent()) {
             ingredienteRepository.delete(ingrediente.get());
             return ResponseEntity.ok().build();
         }
@@ -169,13 +164,15 @@ public class EstoqueController {
 
     @PutMapping("/ingrediente/update")
     public ResponseEntity<?> updateIngredient(@RequestBody IngredienteDto ingredienteDto) {
-        if(ingredienteRepository.existsByNome(ingredienteDto.nome)){
+        if(ingredienteRepository.existsByNome(ingredienteDto.nome) && estoqueRepository.existsById(ingredienteDto.estoqueId)) {
             Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteDto.id);
-            if(ingrediente.isPresent()) {
+            Optional<Estoque> estoque = estoqueRepository.findById(ingredienteDto.estoqueId);
+            if(ingrediente.isPresent() && estoque.isPresent()) {
                 ingrediente.get().setNome(ingredienteDto.nome);
                 ingrediente.get().setDescricao(ingredienteDto.descricao);
                 ingrediente.get().setQuantidade(ingredienteDto.quantidade);
                 ingrediente.get().setUnidade(ingredienteDto.unidade);
+                ingrediente.get().setEstoque(estoque.get());
                 ingredienteRepository.save(ingrediente.get());
 
                 return ResponseEntity.ok().build();
