@@ -110,7 +110,7 @@ public class MesaController {
                 for(ProdutoDto produtoDto : novoPedido.produtos){
                     Optional<Produto> produto = produtoRepository.findById(produtoDto.produtoId);
                     if(produto.isPresent()){
-                        for(int i =0 ; i<=produtoDto.quantidade; i++ ){
+                        for(int i = 0 ; i < produtoDto.quantidade; i++ ){
                             PedidoProduto pedidoProduto = new PedidoProduto();
                             pedidoProduto.setPedido(pedido);
                             pedidoProduto.setProduto(produto.get());

@@ -33,15 +33,13 @@ public class ProdutoIngredienteService {
                 if(produto.get().getQuantidade() > 0) {
                     produto.get().setQuantidade(produto.get().getQuantidade() - 1);
                     for (ProdutoIngrediente produtoIngrediente : produtoIngredientes.get()) {
-                        for(int i = 0; produtoIngrediente.getQuantidade() >= i; i++) {
-                            Optional<Ingrediente> ingrediente = ingredienteRepository.findById(produtoIngrediente.getIngrediente().getId());
-                            if (ingrediente.isPresent()) {
-                                if (ingrediente.get().getQuantidade() > 0) {
-                                    ingrediente.get().setQuantidade(ingrediente.get().getQuantidade() - 1);
-                                    ingredienteRepository.save(ingrediente.get());
-                                } else {
-                                    throw new Exception("Sem quantidade para realizar o pedido!");
-                                }
+                        Optional<Ingrediente> ingrediente = ingredienteRepository.findById(produtoIngrediente.getIngrediente().getId());
+                        if (ingrediente.isPresent()) {
+                            if (ingrediente.get().getQuantidade() > 0) {
+                                ingrediente.get().setQuantidade(ingrediente.get().getQuantidade() - 1);
+                                ingredienteRepository.save(ingrediente.get());
+                            } else {
+                                throw new Exception("Sem quantidade para realizar o pedido!");
                             }
                         }
                     }
