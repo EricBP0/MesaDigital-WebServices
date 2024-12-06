@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -139,11 +140,16 @@ public class CardapioController {
     @GetMapping("/get")
     public ResponseEntity<?> getCardapio() {
         ResponseCardapioDto response = new ResponseCardapioDto();
+        response.produtoList = new ArrayList<>();
         List<Produto> produtos = produtoRepository.findAllByCategoriaTipo(CategoriaTipo.COMIDA.toString());
         if (produtos.isEmpty()) {
             return ResponseEntity.noContent().build();
         }else{
-            response.produtoList = produtos;
+            for(Produto produto : produtos){
+                if(produto.getDataExclusao() == null){
+                    response.produtoList.add(produto);
+                }
+            }
         }
         return ResponseEntity.ok(response);
     }

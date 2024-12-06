@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Date;
+
 @Getter
 @Setter
 
@@ -31,5 +33,8 @@ public class Ingrediente {
     @JoinColumn(name = "id_estoque")
     @ManyToOne
     private Estoque estoque;
+
+    @Column
+    private Date dataExclusao;
 
 }

@@ -92,7 +92,8 @@ public class EstoqueController {
     public ResponseEntity<?> removeProduct(@RequestParam Long produtoId) {
         if(produtoRepository.existsById(produtoId)) {
             Optional<Produto> produto = produtoRepository.findById(produtoId);
-            produtoRepository.delete(produto.get());
+            produto.get().setDataExclusao(new Date());
+            produtoRepository.save(produto.get());
 
             return ResponseEntity.ok().build();
         }
@@ -117,15 +118,16 @@ public class EstoqueController {
                 produtoEntity.setQuantidade(produtoDto.quantidade);
                 produtoEntity.setValor(produtoDto.valor);
                 Produto newProduto = produtoRepository.save(produtoEntity);
-
-                List<Ingrediente> ingredientes = ingredienteRepository.findAllById(produtoDto.ingredientes);
                 produtoIngredienteRepository.deleteAllByProdutoId(newProduto.getId());
-                for(Ingrediente ingredienteDto : ingredientes) {
-                    ProdutoIngrediente produtoIngrediente = new ProdutoIngrediente();
-                    produtoIngrediente.setIngrediente(ingredienteDto);
-                    produtoIngrediente.setProduto(newProduto);
-                    produtoIngrediente.setQuantidade(1L);
-                    produtoIngredienteRepository.save(produtoIngrediente);
+                if(produtoDto.ingredientes != null){
+                    List<Ingrediente> ingredientes = ingredienteRepository.findAllById(produtoDto.ingredientes);
+                    for(Ingrediente ingredienteDto : ingredientes) {
+                        ProdutoIngrediente produtoIngrediente = new ProdutoIngrediente();
+                        produtoIngrediente.setIngrediente(ingredienteDto);
+                        produtoIngrediente.setProduto(newProduto);
+                        produtoIngrediente.setQuantidade(1L);
+                        produtoIngredienteRepository.save(produtoIngrediente);
+                    }
                 }
                 return ResponseEntity.ok().build();
             }
@@ -156,7 +158,8 @@ public class EstoqueController {
     public ResponseEntity<?> deleteIngredient(@RequestParam Long ingredienteId) {
         Optional<Ingrediente> ingrediente = ingredienteRepository.findById(ingredienteId);
         if(ingrediente.isPresent()) {
-            ingredienteRepository.delete(ingrediente.get());
+            ingrediente.get().setDataExclusao(new Date());
+            ingredienteRepository.save(ingrediente.get());
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
@@ -205,12 +208,12 @@ public class EstoqueController {
 
     @GetMapping("/ingrediente/get-all")
     public ResponseEntity<?> getIngredientList(){
-        return ResponseEntity.ok().body(ingredienteRepository.findAll());
+        return ResponseEntity.ok().body(ingredienteRepository.findAllWhereDataExclusaoIsNull());
     }
 
     @GetMapping("/produto/get-all")
     public ResponseEntity<?> getProductList(){
-        return ResponseEntity.ok().body(produtoRepository.findAll());
+        return ResponseEntity.ok().body(produtoRepository.findAllWhereDataExclusaoIsNotNull());
     }
 
     @GetMapping("/get-all")

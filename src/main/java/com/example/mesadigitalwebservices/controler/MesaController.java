@@ -130,12 +130,30 @@ public class MesaController {
     }
 
     @PutMapping("/comanda/pedido/edit")
-    public ResponseEntity<?> updatePedido(@RequestBody Pedido pedido) {
-        if(CoreUtils.validadePedido(pedido)){
-            pedidoRepository.save(pedido);
-            return ResponseEntity.ok().build();
+    public ResponseEntity<?> updatePedido(@RequestBody RequestNewPedidoDto request) throws Exception {
+        Pedido pedido = new Pedido();
+        pedido.setDataCriacao(new Date());
+        pedido.setDescricao(request.observacao);
+        pedido.setStatus(request.status);
+        pedido.setComanda(comandaRepository.findById(request.comandaId).get());
+        pedidoRepository.save(pedido);
+
+        for(ProdutoDto produtoDto : request.produtos){
+            Optional<Produto> produto = produtoRepository.findById(produtoDto.produtoId);
+            if(produto.isPresent()){
+                for(int i = 0 ; i < produtoDto.quantidade; i++ ){
+                    PedidoProduto pedidoProduto = new PedidoProduto();
+                    pedidoProduto.setPedido(pedido);
+                    pedidoProduto.setProduto(produto.get());
+                    pedidoProdutoRepository.save(pedidoProduto);
+                    produtoIngredienteService.removeProdutoIngrediente(new ProdutoIngredienteDto(null, produto.get().getId(), null));
+                }
+                return ResponseEntity.ok().build();
+            }else{
+                return ResponseEntity.badRequest().build();
+            }
         }
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/comanda/pedido/delete")
@@ -145,6 +163,17 @@ public class MesaController {
             return ResponseEntity.ok().build();
         }
         return ResponseEntity.badRequest().build();
+    }
+
+    @PostMapping("/comanda/pedido/finalizar")
+    public ResponseEntity<?> deletePedido(@RequestParam Long pedidoId) {
+      Optional<Pedido> pedido = pedidoRepository.findById(pedidoId);
+      if(pedido.isPresent()){
+          pedido.get().setStatus("FINALIZADA");
+          pedidoRepository.save(pedido.get());
+          return ResponseEntity.ok().build();
+      }
+      return ResponseEntity.badRequest().build();
     }
 
     @GetMapping("/comanda/pedidos")

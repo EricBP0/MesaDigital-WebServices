@@ -41,5 +41,6 @@ public class Produto {
     @Column
     private Date dataCadastro;
 
-
+    @Column
+    private Date dataExclusao;
 }
